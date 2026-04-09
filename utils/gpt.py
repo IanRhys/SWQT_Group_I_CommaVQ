@@ -70,6 +70,7 @@ class TransformerBlock(nn.Module):
 
 class Attention(nn.Module):
   def __init__(self, config: GPTConfig):
+    # Test: verify c_attn output dim is 3*config.dim and c_proj output dim is config.dim, and kv_cache starts as None.
     super().__init__()
     assert config.dim % config.n_head == 0
     self.config = config
@@ -79,6 +80,7 @@ class Attention(nn.Module):
     self.kv_cache = None
 
   def forward(self, x: Tensor, mask: Tensor, input_pos: Optional[Tensor] = None) -> Tensor:
+    # Test: verify output shape is (batch, seqlen, dim), Q/K/V are correctly split and reshaped into n_head heads, and the mask is applied when kv_cache is None.
     bsz, seqlen, _ = x.shape
 
     q, k, v = self.c_attn(x).split([self.config.dim, self.config.dim, self.config.dim], dim=-1)
