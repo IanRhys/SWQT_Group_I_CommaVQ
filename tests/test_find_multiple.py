@@ -3,7 +3,8 @@ FILE:  test the function find_multiple_tests() in gpt.py.
 
 Func being tested: Finds the next multiple of k that is greater than or equal to n.
 
-HOW-TO-RUN:  python3 -m pytest tests/test_find_multiple.py
+HOW-TO-RUN:  
+    python3 -m pytest tests/test_find_multiple.py  (in root)
 """
 from utils.gpt import find_multiple
 
