@@ -1,6 +1,3 @@
 tqdm
 datasets==4.0.0
-torch==2.2.2
-# for testing:
-pytest
-pytest-cov
+torch>=2.2.2 # Changed from torch==2.2.2
