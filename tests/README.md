@@ -46,9 +46,17 @@ This automatically runs all test files found in this directory (`./tests/`).
 
 ### Running tests without coverage results
 
+To simply run the tests:
+
 ```bash
 pytest
 ```
+
+If, say, all 15 tests pass, this will output something like:
+- `15 passed in 0.72s`
+
+If, say, 3 of 15 tests fail, this will output something like:
+- `3 failed, 12 passed in 0.72s`
 
 ### Running tests with coverage results
 
