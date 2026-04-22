@@ -60,10 +60,10 @@ If, say, 3 of 15 tests fail, this will output something like:
 
 ### Running tests with coverage results
 
-The following runs the same tests but creates a report of the metric **statement coverage** for the folder `./utils/`, which is our testing scope.
+The following runs the same tests but creates a report of the metric **statement coverage** for the files `./utils/gpt.py` and `./utils/sampling.py`, which are our testing scope.
 
 ```bash
-pytest --cov-report=html --cov=../utils
+pytest --cov-report=html --cov=utils.gpt --cov=utils.sampling
 ```
 
 This command creates (or updates) a coverage report folder `./tests/htmlcov` and coverage data file `./tests/.coverage`.
