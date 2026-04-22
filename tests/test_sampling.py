@@ -44,7 +44,7 @@ def test_softmax_normalizes_columns_with_axis_zero():
 
 @pytest.mark.unit
 def test_softmax_handles_large_magnitude_values():
-  """Stable for extreme magnitudes."""
+  """Numerically stable for extreme positive and negative values."""
   x = np.array([[1000.0, 1001.0, 1002.0], [-1000.0, -999.0, -998.0]])
 
   y = softmax(x, axis=1)
@@ -125,7 +125,7 @@ def test_multinomial_single_column_always_returns_zero():
 
 @pytest.mark.unit
 def test_multinomial_supports_single_row_input():
-  """Handles batch-size-1 input."""
+  """Handles batch-size-1 input and returns a valid in-bounds index."""
   prob_matrix = np.array([[1.0, 3.0, 6.0]])
 
   result = multinomial(prob_matrix.copy())

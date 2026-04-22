@@ -57,7 +57,7 @@ def test_find_multiple_returns_same_if_multiple():
 
 @pytest.mark.unit
 def test_find_multiple_small_values():
-    """Handles n below k."""
+    """n below k rounds up to k."""
     assert find_multiple(3, 4) == 4
 
 
@@ -113,7 +113,7 @@ def test_multinomial_sample_one_no_sync_index_in_bounds():
 
 @pytest.mark.unit
 def test_multinomial_sample_one_no_sync_batched_shape():
-    """Preserves the batch dimension."""
+    """Handles batched one-hot inputs and preserves the batch dimension."""
     probs = torch.tensor([[1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
 
     out = multinomial_sample_one_no_sync(probs)
@@ -125,7 +125,7 @@ def test_multinomial_sample_one_no_sync_batched_shape():
 
 @pytest.mark.unit
 def test_sample_returns_token_and_probabilities():
-    """Returns a (next-token-index, probability-distribution) pair."""
+    """Returns a (next-token-index, probability-distribution) pair for the last position."""
     logits = torch.tensor([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]])
 
     idx, probs = sample(logits)
@@ -148,7 +148,7 @@ def test_sample_probabilities_use_last_position():
 
 @pytest.mark.unit
 def test_sample_selects_dominating_index():
-    """A dominating last-position logit forces that index."""
+    """A dominating last-position logit forces that index to be sampled."""
     logits = torch.zeros(1, 2, 4)
     logits[0, -1, 2] = 1e4
 
@@ -266,7 +266,7 @@ def test_kv_cache_uses_bfloat16_by_default():
 
 @pytest.mark.unit
 def test_kv_cache_accepts_custom_dtype():
-    """Caller dtype propagates to both buffers."""
+    """Custom dtype propagates to both buffers."""
     cache = KVCache(max_batch_size=1, max_seq_length=2, n_heads=1, head_dim=2, dtype=torch.float32)
 
     assert cache.k_cache.dtype == torch.float32
@@ -471,7 +471,7 @@ def test_gpt_init_causal_mask_is_lower_triangular():
 
 @pytest.mark.unit
 def test_gpt_setup_caches_allocates_kv_cache_per_block():
-    """setup_caches allocates a KVCache per block, rounded to a multiple of 8."""
+    """setup_caches allocates a KVCache per block, rounded up to a multiple of 8."""
     config = _tiny_config()
     model = GPT(config)
 
