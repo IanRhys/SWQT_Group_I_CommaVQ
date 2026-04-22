@@ -85,7 +85,7 @@ def test_multinomial_sample_one_no_sync_one_hot_is_deterministic():
 
 
 def test_multinomial_sample_one_no_sync_index_in_bounds():
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     probs = torch.tensor([0.25, 0.25, 0.25, 0.25])
 
     for _ in range(20):
@@ -277,7 +277,7 @@ def test_kv_cache_update_rejects_mismatched_input_positions():
 
 
 def test_feedforward_preserves_input_shape():
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     config = _tiny_config()
     ff = FeedForward(config)
     x = torch.randn(2, 3, config.dim)
@@ -298,7 +298,7 @@ def test_feedforward_intermediate_projection_widths():
 
 
 def test_attention_forward_without_cache_preserves_shape():
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     config = _tiny_config()
     attn = Attention(config)
     bsz, seqlen = 2, 4
@@ -334,7 +334,7 @@ def test_attention_kv_cache_defaults_to_none():
 
 
 def test_transformer_block_forward_preserves_shape():
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     config = _tiny_config()
     block = TransformerBlock(config)
     bsz, seqlen = 1, 5
@@ -350,7 +350,7 @@ def test_transformer_block_forward_preserves_shape():
 def test_transformer_block_residual_connection_is_wired():
     # zero both sublayers' output projections so attn(x) and mlp(x) contribute 0,
     # leaving only the residual additions — output should equal input exactly
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     config = _tiny_config()
     block = TransformerBlock(config)
     nn.init.zeros_(block.attn.c_proj.weight)
@@ -424,7 +424,7 @@ def test_gpt_setup_caches_is_noop_when_already_large_enough():
 
 
 def test_gpt_forward_without_input_pos_returns_logits():
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     config = _tiny_config()
     model = GPT(config)
     idx = torch.randint(0, config.vocab_size, (1, 5))
@@ -436,7 +436,7 @@ def test_gpt_forward_without_input_pos_returns_logits():
 
 
 def test_gpt_forward_with_explicit_input_pos_returns_logits():
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     config = _tiny_config()
     model = GPT(config)
     idx = torch.randint(0, config.vocab_size, (1, 3))
@@ -448,7 +448,7 @@ def test_gpt_forward_with_explicit_input_pos_returns_logits():
 
 
 def test_gpt_prefill_returns_single_next_token():
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     config = _tiny_config()
     model = GPT(config)
     prompt = torch.randint(0, config.vocab_size, (4,))
@@ -475,7 +475,7 @@ def test_gpt_decode_one_token_requires_single_position(monkeypatch):
 
 def test_gpt_generate_produces_expected_length_and_in_vocab_tokens(monkeypatch):
     _patch_kv_cache_float32(monkeypatch)
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     config = _tiny_config()
     model = GPT(config)
     prompt = torch.randint(0, config.vocab_size, (4,), dtype=torch.int)
@@ -491,7 +491,7 @@ def test_gpt_generate_produces_expected_length_and_in_vocab_tokens(monkeypatch):
 
 def test_gpt_decode_n_tokens_returns_expected_list_lengths(monkeypatch):
     _patch_kv_cache_float32(monkeypatch)
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     config = _tiny_config()
     model = GPT(config)
     model.setup_caches(max_batch_size=1, max_seq_length=config.block_size)
@@ -511,7 +511,7 @@ def test_gpt_decode_n_tokens_returns_expected_list_lengths(monkeypatch):
 
 
 def test_gpt_load_state_dict_from_url_loads_transposed_weights(monkeypatch):
-    torch.manual_seed(0)
+    torch.manual_seed(42)
     config = _tiny_config()
 
     reference = GPT(config)

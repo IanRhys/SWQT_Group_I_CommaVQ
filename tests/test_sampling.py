@@ -124,9 +124,9 @@ def test_multinomial_supports_single_row_input():
 def test_multinomial_seeded_sampling_is_reproducible():
   prob_matrix = np.array([[1.0, 3.0, 6.0], [2.0, 5.0, 3.0]])
 
-  np.random.seed(0)
+  np.random.seed(42)
   first = multinomial(prob_matrix.copy())
-  np.random.seed(0)
+  np.random.seed(42)
   second = multinomial(prob_matrix.copy())
 
   np.testing.assert_array_equal(first, second)
