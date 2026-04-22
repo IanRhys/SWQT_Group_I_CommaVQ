@@ -45,7 +45,7 @@ def _patch_kv_cache_float32(monkeypatch):
 
 @pytest.mark.unit
 def test_find_multiple_rounds_up():
-    """Rounds a non-multiple up to the next multiple of k."""
+    """Rounds up to the next multiple of k."""
     assert find_multiple(10, 8) == 16
 
 
@@ -57,25 +57,25 @@ def test_find_multiple_returns_same_if_multiple():
 
 @pytest.mark.unit
 def test_find_multiple_small_values():
-    """Handles small inputs where n is below k."""
+    """Handles n below k."""
     assert find_multiple(3, 4) == 4
 
 
 @pytest.mark.unit
 def test_find_multiple_k_one():
-    """k=1 is the identity rounding — every n is a multiple of 1."""
+    """k=1 is the identity."""
     assert find_multiple(7, 1) == 7
 
 
 @pytest.mark.unit
 def test_find_multiple_zero():
-    """Zero is a multiple of any k (boundary case)."""
+    """Zero is a multiple of any k."""
     assert find_multiple(0, 8) == 0
 
 
 @pytest.mark.unit
 def test_find_multiple_large_number():
-    """Rounds up correctly for realistic model-sized inputs (e.g. vocab_size 1025)."""
+    """Rounds up for model-sized inputs."""
     assert find_multiple(1025, 8) == 1032
 
 
@@ -92,7 +92,7 @@ def test_multinomial_sample_one_no_sync_returns_int_with_trailing_dim():
 
 @pytest.mark.unit
 def test_multinomial_sample_one_no_sync_one_hot_is_deterministic():
-    """A one-hot probability vector always samples that exact index."""
+    """One-hot input samples that exact index."""
     probs = torch.tensor([0.0, 0.0, 1.0, 0.0])
 
     out = multinomial_sample_one_no_sync(probs)
@@ -102,7 +102,7 @@ def test_multinomial_sample_one_no_sync_one_hot_is_deterministic():
 
 @pytest.mark.unit
 def test_multinomial_sample_one_no_sync_index_in_bounds():
-    """Sampled indices always fall within the distribution's support."""
+    """Sampled indices stay in the distribution's support."""
     torch.manual_seed(42)
     probs = torch.tensor([0.25, 0.25, 0.25, 0.25])
 
@@ -113,7 +113,7 @@ def test_multinomial_sample_one_no_sync_index_in_bounds():
 
 @pytest.mark.unit
 def test_multinomial_sample_one_no_sync_batched_shape():
-    """Preserves the leading batch dimension for batched probability inputs."""
+    """Preserves the batch dimension."""
     probs = torch.tensor([[1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
 
     out = multinomial_sample_one_no_sync(probs)
@@ -125,7 +125,7 @@ def test_multinomial_sample_one_no_sync_batched_shape():
 
 @pytest.mark.unit
 def test_sample_returns_token_and_probabilities():
-    """Returns a (next-token-index, probability-distribution) pair for the last position."""
+    """Returns a (next-token-index, probability-distribution) pair."""
     logits = torch.tensor([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]])
 
     idx, probs = sample(logits)
@@ -138,7 +138,7 @@ def test_sample_returns_token_and_probabilities():
 
 @pytest.mark.unit
 def test_sample_probabilities_use_last_position():
-    """Softmax is applied only to the last timestep's logits."""
+    """Softmax is applied to the last-position logits only."""
     logits = torch.tensor([[[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0]]])
 
     _, probs = sample(logits)
@@ -148,7 +148,7 @@ def test_sample_probabilities_use_last_position():
 
 @pytest.mark.unit
 def test_sample_selects_dominating_index():
-    """A logit that dominates the last position forces that index to be sampled."""
+    """A dominating last-position logit forces that index."""
     logits = torch.zeros(1, 2, 4)
     logits[0, -1, 2] = 1e4
 
@@ -159,7 +159,7 @@ def test_sample_selects_dominating_index():
 
 @pytest.mark.unit
 def test_gpt_config_default_values():
-    """Default-constructed GPTConfig matches the GPT-2-medium-style values hard-coded in gpt.py."""
+    """Default fields match the GPT-2-medium-style values."""
     config = GPTConfig()
 
     assert config.block_size == 20 * 129
@@ -173,7 +173,7 @@ def test_gpt_config_default_values():
 
 @pytest.mark.unit
 def test_gpt_config_bos_token_uses_vocab_size_minus_one():
-    """bos_token is derived from vocab_size, not hard-coded."""
+    """bos_token is vocab_size - 1."""
     config = GPTConfig()
 
     assert config.bos_token == config.vocab_size - 1
@@ -182,7 +182,7 @@ def test_gpt_config_bos_token_uses_vocab_size_minus_one():
 
 @pytest.mark.unit
 def test_gpt_config_bos_token_updates_when_vocab_size_changes():
-    """Changing vocab_size updates bos_token consistently."""
+    """bos_token tracks vocab_size overrides."""
     config = GPTConfig(vocab_size=2048)
 
     assert config.bos_token == 2047
@@ -190,7 +190,7 @@ def test_gpt_config_bos_token_updates_when_vocab_size_changes():
 
 @pytest.mark.unit
 def test_gpt_config_head_dim_computes_dim_divided_by_n_head():
-    """head_dim equals dim // n_head for the default config."""
+    """head_dim is dim // n_head."""
     config = GPTConfig()
 
     assert config.head_dim == config.dim // config.n_head
@@ -199,7 +199,7 @@ def test_gpt_config_head_dim_computes_dim_divided_by_n_head():
 
 @pytest.mark.unit
 def test_gpt_config_head_dim_updates_with_custom_dim_and_n_head():
-    """head_dim tracks custom dim / n_head overrides instead of using the default."""
+    """head_dim tracks dim / n_head overrides."""
     config = GPTConfig(dim=768, n_head=12)
     assert config.head_dim == 64
 
@@ -209,7 +209,7 @@ def test_gpt_config_head_dim_updates_with_custom_dim_and_n_head():
 
 @pytest.mark.unit
 def test_gpt_config_allows_custom_field_overrides():
-    """Every GPTConfig field is overridable through the dataclass constructor."""
+    """All fields are overridable via the constructor."""
     config = GPTConfig(
         block_size=256,
         vocab_size=5000,
@@ -231,7 +231,7 @@ def test_gpt_config_allows_custom_field_overrides():
 
 @pytest.mark.unit
 def test_gpt_config_head_dim_is_integer():
-    """head_dim returns an int, not a float (guards against accidental true division)."""
+    """head_dim is an int, not a float."""
     config = GPTConfig()
 
     assert isinstance(config.head_dim, int)
@@ -239,7 +239,7 @@ def test_gpt_config_head_dim_is_integer():
 
 @pytest.mark.unit
 def test_kv_cache_initializes_caches_with_expected_shape():
-    """k_cache and v_cache are allocated with shape (B, H, T, D)."""
+    """Caches have shape (B, H, T, D)."""
     cache = KVCache(max_batch_size=2, max_seq_length=5, n_heads=3, head_dim=4)
 
     assert cache.k_cache.shape == (2, 3, 5, 4)
@@ -257,7 +257,7 @@ def test_kv_cache_initializes_caches_with_zeros():
 
 @pytest.mark.unit
 def test_kv_cache_uses_bfloat16_by_default():
-    """Default dtype is bfloat16 to match the implementation default."""
+    """Default dtype is bfloat16."""
     cache = KVCache(max_batch_size=1, max_seq_length=2, n_heads=1, head_dim=2)
 
     assert cache.k_cache.dtype == torch.bfloat16
@@ -266,7 +266,7 @@ def test_kv_cache_uses_bfloat16_by_default():
 
 @pytest.mark.unit
 def test_kv_cache_accepts_custom_dtype():
-    """Caller-supplied dtype propagates to both cache buffers."""
+    """Caller dtype propagates to both buffers."""
     cache = KVCache(max_batch_size=1, max_seq_length=2, n_heads=1, head_dim=2, dtype=torch.float32)
 
     assert cache.k_cache.dtype == torch.float32
@@ -275,7 +275,7 @@ def test_kv_cache_accepts_custom_dtype():
 
 @pytest.mark.unit
 def test_kv_cache_update_writes_values_at_requested_positions():
-    """update() writes k_val/v_val exactly at the requested input positions."""
+    """update() writes at the requested input positions."""
     cache = KVCache(max_batch_size=1, max_seq_length=4, n_heads=2, head_dim=3, dtype=torch.float32)
     input_pos = torch.tensor([1, 3], dtype=torch.int64)
     k_val = torch.arange(12, dtype=torch.float32).view(1, 2, 2, 3)
@@ -289,7 +289,7 @@ def test_kv_cache_update_writes_values_at_requested_positions():
 
 @pytest.mark.unit
 def test_kv_cache_update_preserves_unwritten_positions():
-    """update() leaves positions outside input_pos untouched (no accidental overwrite — STP §2 risk)."""
+    """update() leaves other positions untouched."""
     cache = KVCache(max_batch_size=1, max_seq_length=5, n_heads=1, head_dim=2, dtype=torch.float32)
     input_pos = torch.tensor([2], dtype=torch.int64)
     k_val = torch.tensor([[[[1.5, 2.5]]]], dtype=torch.float32)
@@ -308,7 +308,7 @@ def test_kv_cache_update_preserves_unwritten_positions():
 
 @pytest.mark.unit
 def test_kv_cache_update_returns_internal_cache_tensors():
-    """update() returns the module's registered buffers, not copies."""
+    """update() returns the module's buffers, not copies."""
     cache = KVCache(max_batch_size=1, max_seq_length=3, n_heads=1, head_dim=2, dtype=torch.float32)
     input_pos = torch.tensor([0], dtype=torch.int64)
     k_val = torch.tensor([[[[1.0, 2.0]]]], dtype=torch.float32)
@@ -322,7 +322,7 @@ def test_kv_cache_update_returns_internal_cache_tensors():
 
 @pytest.mark.unit
 def test_kv_cache_update_rejects_mismatched_input_positions():
-    """update() asserts input_pos length matches the k_val sequence dimension."""
+    """update() asserts input_pos length matches k_val's sequence dim."""
     cache = KVCache(max_batch_size=1, max_seq_length=4, n_heads=1, head_dim=2, dtype=torch.float32)
     input_pos = torch.tensor([0, 1], dtype=torch.int64)
     k_val = torch.zeros((1, 1, 1, 2), dtype=torch.float32)
@@ -334,7 +334,7 @@ def test_kv_cache_update_rejects_mismatched_input_positions():
 
 @pytest.mark.unit
 def test_feedforward_preserves_input_shape():
-    """Forward pass preserves the (B, T, dim) shape end-to-end."""
+    """Preserves (B, T, dim) shape."""
     torch.manual_seed(42)
     config = _tiny_config()
     ff = FeedForward(config)
@@ -347,7 +347,7 @@ def test_feedforward_preserves_input_shape():
 
 @pytest.mark.unit
 def test_feedforward_intermediate_projection_widths():
-    """c_fc widens to intermediate_size and c_proj projects back to dim."""
+    """c_fc widens to intermediate_size; c_proj projects back to dim."""
     config = _tiny_config()
     ff = FeedForward(config)
 
@@ -359,7 +359,7 @@ def test_feedforward_intermediate_projection_widths():
 
 @pytest.mark.unit
 def test_attention_forward_without_cache_preserves_shape():
-    """Forward pass without a KV cache preserves input shape (fresh-mask path)."""
+    """Preserves shape without a KV cache (fresh-mask path)."""
     torch.manual_seed(42)
     config = _tiny_config()
     attn = Attention(config)
@@ -374,7 +374,7 @@ def test_attention_forward_without_cache_preserves_shape():
 
 @pytest.mark.unit
 def test_attention_rejects_dim_not_divisible_by_n_head():
-    """Constructor asserts dim is divisible by n_head."""
+    """Rejects dim not divisible by n_head."""
     bad = GPTConfig(block_size=8, vocab_size=8, n_layer=1, n_head=3, dim=16,
                     intermediate_size=8, tokens_per_frame=2)
     with pytest.raises(AssertionError):
@@ -383,7 +383,7 @@ def test_attention_rejects_dim_not_divisible_by_n_head():
 
 @pytest.mark.unit
 def test_attention_c_attn_is_packed_qkv_projection():
-    """c_attn packs Q, K, V into a single 3*dim linear projection."""
+    """c_attn packs Q, K, V into a 3*dim projection."""
     config = _tiny_config()
     attn = Attention(config)
 
@@ -395,7 +395,7 @@ def test_attention_c_attn_is_packed_qkv_projection():
 
 @pytest.mark.unit
 def test_attention_kv_cache_defaults_to_none():
-    """kv_cache attribute starts as None until setup_caches attaches one."""
+    """kv_cache starts as None."""
     attn = Attention(_tiny_config())
 
     assert attn.kv_cache is None
@@ -403,7 +403,7 @@ def test_attention_kv_cache_defaults_to_none():
 
 @pytest.mark.unit
 def test_transformer_block_forward_preserves_shape():
-    """Forward pass preserves (B, T, dim) across attention + mlp + residuals."""
+    """Preserves (B, T, dim) shape."""
     torch.manual_seed(42)
     config = _tiny_config()
     block = TransformerBlock(config)
@@ -419,7 +419,7 @@ def test_transformer_block_forward_preserves_shape():
 
 @pytest.mark.unit
 def test_transformer_block_residual_connection_is_wired():
-    """Zeroing both sublayers' output projections collapses the block to the identity — verifies residual wiring."""
+    """Block collapses to identity when both sublayer outputs are zeroed."""
     torch.manual_seed(42)
     config = _tiny_config()
     block = TransformerBlock(config)
@@ -439,7 +439,7 @@ def test_transformer_block_residual_connection_is_wired():
 
 @pytest.mark.unit
 def test_gpt_init_builds_expected_module_tree():
-    """__init__ wires up wte / wpe / h / ln_f / lm_head with shapes derived from config."""
+    """__init__ wires wte / wpe / h / ln_f / lm_head with config-derived shapes."""
     config = _tiny_config()
     model = GPT(config)
 
@@ -459,7 +459,7 @@ def test_gpt_init_builds_expected_module_tree():
 
 @pytest.mark.unit
 def test_gpt_init_causal_mask_is_lower_triangular():
-    """Initial causal_mask is a block_size × block_size lower-triangular bool tensor."""
+    """causal_mask is a block_size × block_size lower-triangular bool tensor."""
     config = _tiny_config()
     model = GPT(config)
 
@@ -471,7 +471,7 @@ def test_gpt_init_causal_mask_is_lower_triangular():
 
 @pytest.mark.unit
 def test_gpt_setup_caches_allocates_kv_cache_per_block():
-    """setup_caches allocates a KVCache on every block, rounded up to the next multiple of 8."""
+    """setup_caches allocates a KVCache per block, rounded to a multiple of 8."""
     config = _tiny_config()
     model = GPT(config)
 
@@ -487,7 +487,7 @@ def test_gpt_setup_caches_allocates_kv_cache_per_block():
 
 @pytest.mark.unit
 def test_gpt_setup_caches_is_noop_when_already_large_enough():
-    """setup_caches is a no-op when existing caches already cover the requested size."""
+    """setup_caches is a no-op when existing caches are large enough."""
     config = _tiny_config()
     model = GPT(config)
 
@@ -503,7 +503,7 @@ def test_gpt_setup_caches_is_noop_when_already_large_enough():
 
 @pytest.mark.integration
 def test_gpt_forward_without_input_pos_returns_logits():
-    """forward without input_pos derives positions from idx and returns (B, T, vocab_size) logits."""
+    """forward without input_pos returns (B, T, vocab_size) logits."""
     torch.manual_seed(42)
     config = _tiny_config()
     model = GPT(config)
@@ -531,7 +531,7 @@ def test_gpt_forward_with_explicit_input_pos_returns_logits():
 
 @pytest.mark.integration
 def test_gpt_prefill_returns_single_next_token():
-    """prefill returns a single next-token tensor sampled from the last-position logits."""
+    """prefill returns a single sampled next-token tensor."""
     torch.manual_seed(42)
     config = _tiny_config()
     model = GPT(config)
@@ -547,7 +547,7 @@ def test_gpt_prefill_returns_single_next_token():
 
 @pytest.mark.integration
 def test_gpt_decode_one_token_requires_single_position(monkeypatch):
-    """decode_one_token asserts input_pos contains exactly one position."""
+    """decode_one_token asserts input_pos has exactly one position."""
     _patch_kv_cache_float32(monkeypatch)
     config = _tiny_config()
     model = GPT(config)
@@ -561,7 +561,7 @@ def test_gpt_decode_one_token_requires_single_position(monkeypatch):
 
 @pytest.mark.system
 def test_gpt_generate_produces_expected_length_and_in_vocab_tokens(monkeypatch):
-    """End-to-end: generate returns max_new_tokens tokens, all within the model's vocabulary."""
+    """generate returns max_new_tokens in-vocab tokens."""
     _patch_kv_cache_float32(monkeypatch)
     torch.manual_seed(42)
     config = _tiny_config()
@@ -602,7 +602,7 @@ def test_gpt_decode_n_tokens_returns_expected_list_lengths(monkeypatch):
 
 @pytest.mark.unit
 def test_gpt_load_state_dict_from_url_loads_transposed_weights(monkeypatch):
-    """load_state_dict_from_url filters legacy attn.bias / masked_bias keys, transposes the four packed weights, and injects a fresh causal_mask."""
+    """load_state_dict_from_url filters legacy bias keys, transposes the four packed weights, and injects a fresh causal_mask."""
     torch.manual_seed(42)
     config = _tiny_config()
 

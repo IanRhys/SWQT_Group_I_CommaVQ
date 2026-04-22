@@ -6,7 +6,7 @@ from utils.sampling import multinomial, softmax
 
 @pytest.mark.unit
 def test_softmax_normalizes_rows():
-  """softmax across axis=1 makes each row a proper probability distribution summing to 1."""
+  """Rows sum to 1."""
   x = np.array([[1.0, 2.0, 3.0], [3.0, 2.0, 1.0]])
 
   y = softmax(x, axis=1)
@@ -16,7 +16,7 @@ def test_softmax_normalizes_rows():
 
 @pytest.mark.unit
 def test_softmax_is_shift_invariant():
-  """Adding a constant to every logit does not change the softmax output (numerical-stability property)."""
+  """Shift-invariant (adding a constant to all logits does not change the output)."""
   x = np.array([[1.0, 2.0, 3.0]])
 
   np.testing.assert_allclose(softmax(x, axis=1), softmax(x + 1000.0, axis=1))
@@ -24,7 +24,7 @@ def test_softmax_is_shift_invariant():
 
 @pytest.mark.unit
 def test_softmax_axis_none_normalizes_entire_array():
-  """axis=None normalizes across the entire array, not a single axis."""
+  """axis=None normalizes the entire array."""
   x = np.array([1.0, 2.0, 3.0])
 
   y = softmax(x)
@@ -34,7 +34,7 @@ def test_softmax_axis_none_normalizes_entire_array():
 
 @pytest.mark.unit
 def test_softmax_normalizes_columns_with_axis_zero():
-  """softmax with axis=0 normalizes down columns instead of across rows."""
+  """axis=0 normalizes columns."""
   x = np.array([[1.0, 3.0], [2.0, 4.0]])
 
   y = softmax(x, axis=0)
@@ -44,7 +44,7 @@ def test_softmax_normalizes_columns_with_axis_zero():
 
 @pytest.mark.unit
 def test_softmax_handles_large_magnitude_values():
-  """Stays finite and normalized for extreme positive and negative inputs (stability under edge-case magnitudes)."""
+  """Stable for extreme magnitudes."""
   x = np.array([[1000.0, 1001.0, 1002.0], [-1000.0, -999.0, -998.0]])
 
   y = softmax(x, axis=1)
@@ -55,7 +55,7 @@ def test_softmax_handles_large_magnitude_values():
 
 @pytest.mark.unit
 def test_softmax_preserves_input_shape():
-  """Output shape matches input shape exactly."""
+  """Preserves input shape."""
   x = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
 
   y = softmax(x, axis=1)
@@ -65,7 +65,7 @@ def test_softmax_preserves_input_shape():
 
 @pytest.mark.unit
 def test_softmax_preserves_logit_ordering_within_row():
-  """Larger logits map to larger probabilities within the same row."""
+  """Preserves logit ordering within a row."""
   x = np.array([[1.0, 2.0, 3.0]])
 
   y = softmax(x, axis=1)
@@ -75,7 +75,7 @@ def test_softmax_preserves_logit_ordering_within_row():
 
 @pytest.mark.unit
 def test_multinomial_returns_column_vector():
-  """Returns one sampled index per row, shaped as a column vector."""
+  """Returns a column vector, one sampled index per row."""
   prob_matrix = np.array([[0.2, 0.3, 0.5], [0.1, 0.7, 0.2]])
 
   result = multinomial(prob_matrix.copy())
@@ -85,7 +85,7 @@ def test_multinomial_returns_column_vector():
 
 @pytest.mark.unit
 def test_multinomial_one_hot_rows_are_deterministic():
-  """One-hot rows always sample the single nonzero index."""
+  """One-hot rows sample the nonzero index."""
   prob_matrix = np.array([[0.0, 1.0, 0.0], [1.0, 0.0, 0.0]])
 
   result = multinomial(prob_matrix.copy())
@@ -95,7 +95,7 @@ def test_multinomial_one_hot_rows_are_deterministic():
 
 @pytest.mark.unit
 def test_multinomial_normalizes_rows_in_place():
-  """Rows are normalized in place before sampling (documents the in-place side effect)."""
+  """Normalizes rows in place before sampling."""
   prob_matrix = np.array([[2.0, 3.0], [1.0, 1.0]])
 
   multinomial(prob_matrix)
@@ -105,7 +105,7 @@ def test_multinomial_normalizes_rows_in_place():
 
 @pytest.mark.unit
 def test_multinomial_normalizes_expected_row_values():
-  """In-place normalization produces the exact expected row values for a simple input."""
+  """In-place normalization produces the expected row values."""
   prob_matrix = np.array([[2.0, 3.0], [1.0, 1.0]])
 
   multinomial(prob_matrix)
@@ -115,7 +115,7 @@ def test_multinomial_normalizes_expected_row_values():
 
 @pytest.mark.unit
 def test_multinomial_single_column_always_returns_zero():
-  """A single-class distribution always samples index 0."""
+  """Single-class distribution always samples index 0."""
   prob_matrix = np.array([[1.0], [5.0], [0.2]])
 
   result = multinomial(prob_matrix.copy())
@@ -125,7 +125,7 @@ def test_multinomial_single_column_always_returns_zero():
 
 @pytest.mark.unit
 def test_multinomial_supports_single_row_input():
-  """Handles batch-size-1 input and returns a valid in-bounds index."""
+  """Handles batch-size-1 input."""
   prob_matrix = np.array([[1.0, 3.0, 6.0]])
 
   result = multinomial(prob_matrix.copy())
@@ -136,7 +136,7 @@ def test_multinomial_supports_single_row_input():
 
 @pytest.mark.unit
 def test_multinomial_seeded_sampling_is_reproducible():
-  """Fixing the seed makes sampled output reproducible across identical calls."""
+  """Seeded sampling is reproducible."""
   prob_matrix = np.array([[1.0, 3.0, 6.0], [2.0, 5.0, 3.0]])
 
   np.random.seed(42)
@@ -149,7 +149,7 @@ def test_multinomial_seeded_sampling_is_reproducible():
 
 @pytest.mark.unit
 def test_multinomial_output_indices_stay_in_bounds():
-  """Sampled indices always fall within [0, n_classes)."""
+  """Sampled indices stay in [0, n_classes)."""
   prob_matrix = np.array([[1.0, 2.0, 3.0], [4.0, 1.0, 5.0], [7.0, 2.0, 1.0]])
 
   result = multinomial(prob_matrix.copy())
