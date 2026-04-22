@@ -20,7 +20,7 @@ def test_gpt_config_default_values():
     assert config.intermediate_size == 4 * 1024
     assert config.tokens_per_frame == 129
 
-# verifies that hte bos_token property is derived correctly from vocab_size
+# verifies that the bos_token property is derived correctly from vocab_size
 def test_gpt_config_bos_token_uses_vocab_size_minus_one():
     config = GPTConfig()
 
