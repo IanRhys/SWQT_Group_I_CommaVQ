@@ -407,9 +407,7 @@ def test_attention_c_attn_splits_qkv_in_expected_order():
     torch.manual_seed(42)
     config = _tiny_config()
     attn = Attention(config)
-    # zero the V slice (last `dim` out_features) of the packed c_attn projection.
-    # with v=0 everywhere, softmax-weighted attention output is 0 regardless of q/k,
-    # so the final c_proj(0) reduces to c_proj.bias.
+    # v=0 makes attention output 0 regardless of q/k, so c_proj collapses to its bias
     with torch.no_grad():
         attn.c_attn.weight[-config.dim:].zero_()
         attn.c_attn.bias[-config.dim:].zero_()
