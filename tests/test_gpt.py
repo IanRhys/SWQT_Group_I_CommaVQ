@@ -402,6 +402,28 @@ def test_attention_kv_cache_defaults_to_none():
 
 
 @pytest.mark.unit
+def test_attention_c_attn_splits_qkv_in_expected_order():
+    """Verifies c_attn packs Q/K/V in [Q, K, V] order along the last dim: zeroing the V slice collapses the output to c_proj's bias."""
+    torch.manual_seed(42)
+    config = _tiny_config()
+    attn = Attention(config)
+    # zero the V slice (last `dim` out_features) of the packed c_attn projection.
+    # with v=0 everywhere, softmax-weighted attention output is 0 regardless of q/k,
+    # so the final c_proj(0) reduces to c_proj.bias.
+    with torch.no_grad():
+        attn.c_attn.weight[-config.dim:].zero_()
+        attn.c_attn.bias[-config.dim:].zero_()
+
+    x = torch.randn(1, 4, config.dim)
+    mask = torch.tril(torch.ones(1, 1, 4, 4, dtype=torch.bool))
+
+    y = attn(x, mask=mask, input_pos=None)
+
+    expected = attn.c_proj.bias.expand_as(y)
+    torch.testing.assert_close(y, expected)
+
+
+@pytest.mark.unit
 def test_transformer_block_forward_preserves_shape():
     """Verifies a full transformer block preserves the (batch, seq_len, dim) shape across attention, feed-forward, and residual connections."""
     torch.manual_seed(42)
@@ -527,6 +549,20 @@ def test_gpt_forward_with_explicit_input_pos_returns_logits():
     logits = model(idx, input_pos=input_pos)
 
     assert logits.shape == (1, 3, config.vocab_size)
+
+
+@pytest.mark.integration
+def test_gpt_forward_at_maximum_sequence_length():
+    """Verifies forward runs correctly at the maximum sequence length (block_size boundary)."""
+    torch.manual_seed(42)
+    config = _tiny_config()
+    model = GPT(config)
+    idx = torch.randint(0, config.vocab_size, (1, config.block_size))
+
+    logits = model(idx)
+
+    assert logits.shape == (1, config.block_size, config.vocab_size)
+    assert torch.isfinite(logits).all()
 
 
 @pytest.mark.integration
